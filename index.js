@@ -5,10 +5,15 @@ const token = config.get('server.token');
 const octokit = new Octokit({auth: token});
 const http = require('http');
 const url = require('url');
+const queryString = require( "querystring" );
 
 const express = require('express');
 const req = require("express/lib/request");
 const app = express();
+
+function isEmpty(obj) {
+    return Object.keys(obj).length === 0 && (obj.constructor === Object || obj.constructor === undefined);
+}
 
 
 const server = http.createServer ( function(request,response){
@@ -19,6 +24,19 @@ const server = http.createServer ( function(request,response){
         //console.log(request);
     }
     else if(request.method === "POST") {
+
+        // parses the request url
+        const theUrl = url.parse( request.url );
+        // gets the query part of the URL and parses it creating an object
+        const queryObj = queryString.parse( theUrl.query );
+        if (!isEmpty(queryObj)){
+            // queryObj will contain the data of the query as an object
+            // and jsonData will be a property of it
+            // so, using JSON.parse will parse the jsonData to create an object
+            const obj = JSON.parse(queryObj.jsonData);
+            // as the object is created, the live below will print "bar"
+            console.log(obj.foo);
+        }
         console.log('Now we have a http message with headers but no data yet.');
         const chunks = [];
         request.on('data', chunk => chunks.push(chunk));

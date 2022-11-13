@@ -16,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/wabasoft/github-node-server/issues"
   },
-  "homepage": "https://github.com/wabasoft/github-node-server#readme"
+  "homepage": "https://github.com/wabasoft/github-node-server#readme",
+  "dependencies": {
+    "@octokit/core": "^4.1.0"
+  }
 }

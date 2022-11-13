@@ -4,23 +4,35 @@ const organization = config.get('server.organization');
 const token = config.get('server.token');
 const octokit = new Octokit({auth: token});
 const http = require('http');
+const url = require('url');
+
+const express = require('express');
+const req = require("express/lib/request");
+const app = express();
+
+
 const server = http.createServer ( function(request,response){
     response.writeHead(200,{"Content-Type":"text\plain"});
-
-    console.log('Now we have a http message with headers but no data yet.');
-    request.on('data', chunk => {
-        console.log('A chunk of data has arrived: ', chunk);
-    });
-    request.on('end', () => {
-        console.log('No more data');
-    });
+    console.log(request.method);
     if(request.method === "GET") {
         response.end("received GET request.")
-        console.log(request);
+        //console.log(request);
     }
     else if(request.method === "POST") {
+
+        console.log('Now we have a http message with headers but no data yet.');
+        request.on('data', chunk => {
+            console.log('A chunk of data has arrived: ', chunk);
+        });
+        request.on('end', () => {
+            console.log('No more data');
+        });
+
+        const URLParams = url.parse(request.url, true).query;
+        console.log(URLParams);
+
         response.end("received POST request.");
-        console.log(request);
+        console.log("received POST request.");
         /* const action = request.action;
         if (action === 'created') {
             const repository_id = request.repository.id;

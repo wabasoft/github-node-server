@@ -4,82 +4,94 @@ const organization = config.get('server.organization');
 const token = config.get('server.token');
 const octokit = new Octokit({auth: token});
 const http = require('http');
-const url = require('url');
-const queryString = require( "querystring" );
-
-const express = require('express');
-const req = require("express/lib/request");
-const app = express();
-
+const fs = require('fs');
+const port=4567;
 function isEmpty(obj) {
     return Object.keys(obj).length === 0 && (obj.constructor === Object || obj.constructor === undefined);
 }
-
-
-const server = http.createServer ( function(request,response){
-    response.writeHead(200,{"Content-Type":"text\plain"});
-    console.log('Request method: ' + request.method);
-    if(request.method === "GET") {
-        response.end("received GET request.")
-        //console.log(request);
-    }
-    else if(request.method === "POST") {
-
-        // parses the request url
-        const theUrl = url.parse( request.url );
-        // gets the query part of the URL and parses it creating an object
-        const queryObj = queryString.parse( theUrl.query );
-        if (!isEmpty(queryObj)){
-            // queryObj will contain the data of the query as an object
-            // and jsonData will be a property of it
-            // so, using JSON.parse will parse the jsonData to create an object
-            const obj = JSON.parse(queryObj.jsonData);
-            // as the object is created, the live below will print "bar"
-            console.log(obj.foo);
-        }
+const server = http.createServer(function (request, response) {
+    if (request.method === 'GET') {
+        response.writeHead(200, { 'Content-Type': 'text/html' });
+        fs.createReadStream('./public/form.html', 'UTF-8').pipe(response);
+    } else if (request.method === 'POST') {
         console.log('Now we have a http message with headers but no data yet.');
-        const chunks = [];
-        request.on('data', chunk => chunks.push(chunk));
-        request.on('end', () => {
-            const data = Buffer.concat(chunks);
-            console.log('Data in chunks concatenated: ', data);
+        let body = '';
+        request.on('data', function (chunk) {
+            body += chunk;
+            //console.log('body:' + body);
         });
-        const URLParams = url.parse(request.url, true).query;
-        if (!!URLParams) {
-            console.log(URLParams);
-        } else {
-            console.log('URL Params undefined');
-        }
-        console.log('received POST request.');
-        /* const action = request.action;
-        if (action === 'created') {
-            const repository_id = request.repository.id;
-            const repository_name = request.repository.name;
-            const repository_default_branch = request.repository.default_branch;
-            const sender_login = request.sender.login;
-            // create issue
-            const CreateIssue = async () => {
-                await Promise.resolve(octokit.request('POST /repos/' + organization + '/' + repository_name + '/issues', {
-                    owner: sender_login,
-                    repo: repository_name,
-                    title: 'Repository created',
-                    body: 'I\'m having a problem with this.',
-                    assignees: [
-                        'octocat'
-                    ],
-                    milestone: 1,
-                    labels: [
-                        'bug'
-                    ]
-                }));
+        console.log('Data object received in chunks.');
+        request.on('end', function(){
+            response.writeHead(200, { 'Content-Type': 'text/html' });
+            const bodyJson = JSON.parse(body);
+            //console.log('bodyJson:' + body);
+            if (!isEmpty(bodyJson)) {
+                const action = bodyJson.action;
+                const repository_id = bodyJson.repository.id;
+                const repository_name = bodyJson.repository.name;
+                const repository_default_branch = bodyJson.repository.default_branch;
+                const repository_full_name = bodyJson.repository.full_name;
+                const repository_sender_login = bodyJson.sender.login;
+                const repository_sender_id = bodyJson.sender.id;
+                // GitHub octokit
+                // Protect branch
+                const protectBranch = async () => {
+                    if (repository_default_branch !== undefined) {
+                        await octokit.request(
+                        'PUT /repos/' + organization + '/' + repository_name + '/branches/' + repository_default_branch + '/protection', {
+                            owner: organization,
+                            repo: repository_name,
+                            branch: repository_default_branch,
+                            required_status_checks: {
+                                strict: false,
+                                private: true,
+                                contexts: []
+                            },
+                            enforce_admins: false,
+                            required_pull_request_reviews: {},
+                            restrictions: {
+                                users: [
+                                    'octocat'
+                                ],
+                                teams: [
+                                    'justice-league'
+                                ],
+                                apps: [
+                                    'super-ci'
+                                ]
+                            },
+                            required_linear_history: true,
+                            allow_force_pushes: true,
+                            allow_deletions: true,
+                            block_creations: true,
+                            required_conversation_resolution: true,
+                            lock_branch: true,
+                            allow_fork_syncing: true
+                        });
+                    }
+                 };
+                // create issue
+                const createIssue = async () => {
+                    await octokit.request('POST /repos/' + organization + '/' + repository_name + '/issues', {
+                        owner: repository_sender_login,
+                        repo: repository_name,
+                        title: 'default branch is unprotected',
+                        body: 'I\'m protecting the branch.',
+                        assignees: [
+                            repository_sender_login
+                        ],
+                        labels: [
+                            'bug'
+                        ]
+                    });
+                }
+                protectBranch().then(r => console.log('Branch protected... [OK]!'));
+                createIssue().then(r => console.log('Issue created... [OK]!'));
             }
-            CreateIssue().then(r => console.log('then'))
-        }*/
-        response.end("received POST request.");
+            //console.log('body: ' + body);
+            response.end(body);
+        });
+    } else {
+        console.log('Unhandled request');
     }
-    else {
-        response.end("Undefined request .");
-    }
-});
-server.listen(4567);
-console.log("Server running on port 4567");
+}).listen(port);

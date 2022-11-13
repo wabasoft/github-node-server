@@ -19,6 +19,7 @@
   "homepage": "https://github.com/wabasoft/github-node-server#readme",
   "dependencies": {
     "@octokit/core": "^4.1.0",
+    "@octokit/webhooks": "^10.3.1",
     "config": "^3.3.8",
     "express": "^4.18.2"
   }

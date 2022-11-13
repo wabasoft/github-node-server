@@ -21,8 +21,11 @@ const server = http.createServer ( function(request,response){
     else if(request.method === "POST") {
 
         console.log('Now we have a http message with headers but no data yet.');
-        request.on('data', chunk => {
-            console.log('A chunk of data has arrived: ', chunk);
+        const chunks = [];
+        request.on('data', chunk => chunks.push(chunk));
+        request.on('end', () => {
+            const data = Buffer.concat(chunks);
+            console.log('Data: ', data);
         });
         request.on('end', () => {
             console.log('No more data');

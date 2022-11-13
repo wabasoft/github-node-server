@@ -5,10 +5,12 @@ const server = http.createServer ( function(request,response){
     if(request.method == "GET")
     {
         response.end("received GET request.")
+        console.log(request);
     }
     else if(request.method == "POST")
     {
         response.end("received POST request.");
+        console.log(request);
     }
     else
     {

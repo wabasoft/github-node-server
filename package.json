@@ -18,6 +18,7 @@
   },
   "homepage": "https://github.com/wabasoft/github-node-server#readme",
   "dependencies": {
-    "@octokit/core": "^4.1.0"
+    "@octokit/core": "^4.1.0",
+    "config": "^3.3.8"
   }
 }

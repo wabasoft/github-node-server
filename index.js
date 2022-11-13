@@ -1,4 +1,10 @@
 const http = require('http');
+const config = require('config');
+const { Octokit } = require("@octokit/core");
+const organization = config.get('server.organization');
+const token = config.get('server.token');
+const repository = config.get('server.repository');
+const octokit = new Octokit({auth: token});
 const server = http.createServer ( function(request,response){
 
     response.writeHead(200,{"Content-Type":"text\plain"});

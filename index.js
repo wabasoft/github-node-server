@@ -13,29 +13,26 @@ const app = express();
 
 const server = http.createServer ( function(request,response){
     response.writeHead(200,{"Content-Type":"text\plain"});
-    console.log(request.method);
+    console.log('Request method: ' + request.method);
     if(request.method === "GET") {
         response.end("received GET request.")
         //console.log(request);
     }
     else if(request.method === "POST") {
-
         console.log('Now we have a http message with headers but no data yet.');
         const chunks = [];
         request.on('data', chunk => chunks.push(chunk));
         request.on('end', () => {
             const data = Buffer.concat(chunks);
-            console.log('Data: ', data);
+            console.log('Data in chunks concatenated: ', data);
         });
-        request.on('end', () => {
-            console.log('No more data');
-        });
-
         const URLParams = url.parse(request.url, true).query;
-        console.log(URLParams);
-
-        response.end("received POST request.");
-        console.log("received POST request.");
+        if (!!URLParams) {
+            console.log(URLParams);
+        } else {
+            console.log('URL Params undefined');
+        }
+        console.log('received POST request.');
         /* const action = request.action;
         if (action === 'created') {
             const repository_id = request.repository.id;
@@ -60,6 +57,7 @@ const server = http.createServer ( function(request,response){
             }
             CreateIssue().then(r => console.log('then'))
         }*/
+        response.end("received POST request.");
     }
     else {
         response.end("Undefined request .");

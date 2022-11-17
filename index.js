@@ -10,6 +10,7 @@ function isEmpty(obj) {
     return Object.keys(obj).length === 0 && (obj.constructor === Object || obj.constructor === undefined);
 }
 const server = http.createServer(function (request, response) {
+    console.log('Opened server on port' + port);
     if (request.method === 'GET') {
         response.writeHead(200, { 'Content-Type': 'text/html' });
         fs.createReadStream('./public/form.html', 'UTF-8').pipe(response);
@@ -86,7 +87,7 @@ const server = http.createServer(function (request, response) {
                     });
                 }
                 protectBranch().then(r => console.log('Branch protected... [OK]!'));
-                createIssue().then(r => console.log('Issue created... [OK]!'));
+                createIssue().then(r => console.log('Issue @' + repository_sender_login + 'created... [OK]!'));
             }
             //console.log('body: ' + body);
             response.end(body);
